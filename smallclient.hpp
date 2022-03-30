@@ -15,26 +15,10 @@
 #define SMALLCLIENT_SSL_VERIFY 0
 #endif
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
-// openssl
-#ifdef SMALLCLIENT_SSL_SUPPORT
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#endif
-
-#include <algorithm>
-#include <cstring>
 #include <functional>
 #include <iostream>
-#include <map>
-#include <sstream>
-#include <stdexcept>
 #include <string>
-#include <tuple>
+#include <map>
 #include <vector>
 
 #ifndef SMALLCLIENT_READ_BUFFER_SIZE
@@ -64,7 +48,7 @@ namespace smallclient
 
     struct ResponseCallback
     {
-        std::function<void(int, const std::string&)> on_start = [](int, const std::string&) {};
+        std::function<void(int, const std::string &)> on_start = [](int, const std::string &) {};
         std::function<void(const std::string &, const std::string &)> on_header = [](const std::string &k, const std::string &v) {};
         std::function<void(ssize_t)> on_start_body = [](ssize_t) {};
         std::function<void(const char *, size_t len)> on_data = [](const char *, size_t) {};
