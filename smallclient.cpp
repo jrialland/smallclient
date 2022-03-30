@@ -1,5 +1,29 @@
 #include "smallclient.hpp"
 
+#ifdef WIN32
+#include <winsock2.h> // socket
+#include <ws2tcpip.h> // getaddrinfo
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#endif
+
+// openssl
+#ifdef SMALLCLIENT_SSL_SUPPORT
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif
+
+// getaddrinfo
+
+#include <algorithm>
+#include <cstring>
+#include <sstream>
+#include <stdexcept>
+#include <tuple>
+
 namespace smallclient
 {
     static inline void throw_for_errno(const std::string &message)
@@ -296,6 +320,18 @@ namespace smallclient
                 nullptr);
         }
     }
+    
+#ifdef SMALLCLIENT_SSL_SUPPORT
+    struct ssl_dealloc {
+      SSL* ssl;
+      ~ssl_dealloc() {
+        if (ssl) {
+          SSL_shutdown(ssl);
+          SSL_free(ssl);
+        }
+      }  
+    };
+#endif
 
     static void query(const URI &uri, const std::string &method, const std::map<std::string, std::string> &headers, std::istream &data, const ResponseCallback &callback)
     {
@@ -306,6 +342,8 @@ namespace smallclient
         auto ssl = std::get<2>(t);
 
 #ifdef SMALLCLIENT_SSL_SUPPORT
+        ssl_dealloc dealloc{static_cast<SSL *>(ssl)};
+
         if (ssl != nullptr && SMALLCLIENT_SSL_VERIFY)
         {
             int err = SSL_get_verify_result(static_cast<SSL *>(ssl));
