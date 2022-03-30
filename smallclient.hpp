@@ -10,9 +10,15 @@
 #undef SMALLCLIENT_SSL_SUPPORT
 #endif
 
-// If you want to remove SSL certificate verification (not recommanded), define the SMALLCLIENT_SSL_NO_VERIFY directive
+// If you want to remove SSL certificate verification (not recommended), define the SMALLCLIENT_SSL_NO_VERIFY directive
 #ifdef SMALLCLIENT_SSL_NO_VERIFY
 #define SMALLCLIENT_SSL_VERIFY 0
+#endif
+
+#define SMALLCLIENT_NO_BASE64_SUPPORT
+// support for base64 encoding/decoding
+#ifdef SMALLCLIENT_NO_BASE64_SUPPORT
+#undef SMALLCLIENT_BASE64_SUPPORT
 #endif
 
 #include <functional>
@@ -83,6 +89,9 @@ namespace smallclient
         Request &body(std::istream &data);
         Request &body(const std::string &s);
         Request &follow_redirects();
+        #ifdef SMALLCLIENT_BASE64_SUPPORT
+        Request &basic_auth(const std::string &username, const std::string &password);
+        #endif
     };
 
 };

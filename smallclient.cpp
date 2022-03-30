@@ -16,13 +16,17 @@
 #include <openssl/err.h>
 #endif
 
-// getaddrinfo
+#ifdef SMALLCLIENT_BASE64
+#include "base64.hpp"
+#endif
 
 #include <algorithm>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
+
+#include "base64.hpp"
 
 namespace smallclient
 {
@@ -320,16 +324,19 @@ namespace smallclient
                 nullptr);
         }
     }
-    
+
 #ifdef SMALLCLIENT_SSL_SUPPORT
-    struct ssl_dealloc {
-      SSL* ssl;
-      ~ssl_dealloc() {
-        if (ssl) {
-          SSL_shutdown(ssl);
-          SSL_free(ssl);
+    struct ssl_dealloc
+    {
+        SSL *ssl;
+        ~ssl_dealloc()
+        {
+            if (ssl)
+            {
+                SSL_shutdown(ssl);
+                SSL_free(ssl);
+            }
         }
-      }  
     };
 #endif
 
@@ -623,6 +630,15 @@ namespace smallclient
         string_data = s;
         return *this;
     }
+
+#ifdef SMALLCLIENT_BASE64
+    Request &Request::basic_auth(const std::string &username, const std::string &password)
+    {
+        std::string payload = username + ":" + password;
+        headers["Authorization"] = "Basic " + base64::encode(reinterpret_cast<const unsigned char *>(payload.c_str()), payload.size());
+        return *this;
+    }
+#endif
 
     struct RedirectCallback : public ResponseCallback
     {
